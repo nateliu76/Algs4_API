@@ -1,4 +1,8 @@
 import java.util.Arrays;
+import java.util.Comparator;
+
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdIn;
 
 /**
  *  The BinarySearch class provides a static method for binary
@@ -18,50 +22,64 @@ public class BinarySearch {
      * @param a the array of integers, must be sorted in ascending order
      * @return index of key in array a[] if present; -1 if not present
      */
-    public static int indexOf(int key, int[] a) {
+    public static <Key> int indexOf(Key[] a, Key key, Comparator<Key> comparator) {
         int lo = 0;
         int hi = a.length - 1;
-        while (lo <= hi) {
+        while (hi >= lo) {
             int mid = lo + (hi - lo) / 2;
-            if (key < a[mid]) hi = mid - 1;
-            else if (key > a[mid]) lo = mid + 1;
+            int c = comparator.compare(a[mid], key);
+            if (c > 0) hi = mid - 1;
+            else if (c < 0) lo = mid + 1;
             else return mid;
         }
         return -1;
     }
     
-    
-    // index of first occurrence of a given key
-    public static int firstIndexOf(int key, int[] a) {
+    public static <Key extends Comparable<Key>> int indexOf(Key[] a, Key key) {
         int lo = 0;
         int hi = a.length - 1;
-        while (lo <= hi) {
+        while (hi >= lo) {
             int mid = lo + (hi - lo) / 2;
-            if (key < a[mid]) hi = mid - 1;
-            else if (key > a[mid]) lo = mid + 1;
-            else if (mid > 0 && a[mid - 1] == key) hi = mid - 1;
+            int c = a[mid].compareTo(key);
+            if (c > 0) hi = mid - 1;
+            else if (c < 0) lo = mid + 1;
             else return mid;
         }
         return -1;
     }
     
-    
-    // index of last occurrence of a given key
-    public static int lastIndexOf(int key, int[] a) {
-        int lo = 0;
+    // return the smallest index i such a[i] equals key
+    // use pred + 1 instead?
+    public static <Key> int firstIndexOf(Key[] a, Key key, Comparator<Key> comparator) {
+        if (a.length == 0) return -1;
+        int lo = -1;
         int hi = a.length - 1;
-        while (lo <= hi) {
+        while (hi - lo > 1) {
             int mid = lo + (hi - lo) / 2;
-            if (key < a[mid]) hi = mid - 1;
-            else if (key > a[mid]) lo = mid + 1;
-            else if (mid < a.length - 1 && a[mid + 1] == key) lo = mid + 1;
-            else return mid;
+            if (comparator.compare(a[mid], key) >= 0) hi = mid;
+            else                                      lo = mid;
         }
-        return -1;
+        if (comparator.compare(a[hi], key) == 0) return hi;
+        else                                     return -1;
     }
-
+    
+    // return the largest index i such a[i] equals key
+    // use succ - 1 instead?
+    public static <Key> int lastIndexOf(Key[] a, Key key, Comparator<Key> comparator) {
+        if (a.length == 0) return -1;
+        int lo = 0;
+        int hi = a.length;
+        while (hi - lo > 1) {
+            int mid = lo + (hi - lo) / 2;
+            if (comparator.compare(a[mid], key) <= 0) lo = mid;
+            else                                      hi = mid;
+        }
+        if (comparator.compare(a[lo], key) == 0) return lo;
+        else                                     return -1;
+    }
     
     // index of largest key less than or equal to a given key
+    // can use pred() + 1?
     public static int floor(int key, int[] a) {
         if (a[a.length - 1] <= key) return a.length - 1;
         if (a[0] > key) return -1;
@@ -73,16 +91,19 @@ public class BinarySearch {
             if (key < a[mid]) {
                 if (mid - 1 >= lo && a[mid - 1] <= key) return mid - 1;
                 else hi = mid - 1;
-            } else if (key > a[mid]){
+            } 
+            else if (key > a[mid]){
                 if (mid + 1 <= hi && a[mid + 1] > key) return mid;
                 else lo = mid + 1;
-            } else return mid;
+            }
+            else return mid;
         }
         return -1;
     }
     
     
     // index of smallest key greater than or equal to a given key
+    // can use succ - 1
     public static int ceil(int key, int[] a) {
         if (a[0] >= key) return 0;
         if (a[a.length - 1] < key) return -1;
@@ -94,14 +115,26 @@ public class BinarySearch {
             if (key < a[mid]) {
                 if (mid - 1 >= lo && a[mid - 1] < key) return mid;
                 else hi = mid - 1;
-            } else if (key > a[mid]) {
+            } 
+            else if (key > a[mid]) {
                 if (mid + 1 <= hi && a[mid + 1] >= key) return mid + 1;
                 else lo = mid + 1;
-            } else return mid;
+            } 
+            else return mid;
         }
         return -1;
     }
     
+    public static <Key extends Comparable<Key>> int pred(Key[] a, Key key) {
+        int lo = 0; // check boundaries and confirm if they are correct
+        int hi = a.length - 1;
+        while (hi > lo) { // this one too
+            int mid = lo + (hi - lo) / 2;
+            if (a[mid].compareTo(key) < 0) lo = mid;
+            else hi = mid;
+        }
+        return -1;
+    }
     
     // index of largest key strictly less than a given key
     public static int pred(int key, int[] a) {
@@ -115,7 +148,8 @@ public class BinarySearch {
             if (key < a[mid] || key == a[mid]) {
                 if (mid - 1 >= lo && a[mid - 1] < key) return mid - 1;
                 else hi = mid - 1;
-            } else {
+            } 
+            else {
                 if (mid + 1 <= hi && a[mid + 1] >= key) return mid;
                 else lo = mid + 1;
             }
@@ -136,7 +170,8 @@ public class BinarySearch {
             if (key > a[mid] || key == a[mid]) {
                 if (mid + 1 <= hi && a[mid + 1] > key) return mid + 1;
                 else lo = mid + 1;
-            } else {
+            } 
+            else {
                 if (mid - 1 >= lo && a[mid - 1] <= key) return mid;
                 else hi = mid - 1;
             }
@@ -146,6 +181,7 @@ public class BinarySearch {
     
     
     // number of entries equal to a given key
+    // use pred and succ instead
     public static int count(int key, int[] a) {
         int first = firstIndexOf(key, a);
         if (first == -1) return 0;
@@ -184,23 +220,23 @@ public class BinarySearch {
 
         // read the integers from a file
         In in = new In(args[0]);
-        int[] whitelist = in.readAllInts();
+        int[] arr = in.readAllInts();
 
         // sort the array
-        Arrays.sort(whitelist);
+        Arrays.sort(arr);
 
         // read integer key from standard input; print if not in whitelist
         while (!StdIn.isEmpty()) {
             int key = StdIn.readInt();
-            System.out.println(indexOf(key, whitelist));
-            System.out.println("first: "+firstIndexOf(key, whitelist));
-            System.out.println("last: "+lastIndexOf(key, whitelist));
-            System.out.println("floor: "+floor(key, whitelist));
-            System.out.println("ceil: "+ceil(key, whitelist));
-            System.out.println("pred: "+pred(key, whitelist));
-            System.out.println("succ: "+succ(key, whitelist));
-            System.out.println("count: "+count(key, whitelist));
-            System.out.println("rank: "+rank(key, whitelist));
+            System.out.println(indexOf(key, arr));
+            System.out.println("first: "+firstIndexOf(key, arr));
+            System.out.println("last: "+lastIndexOf(key, arr));
+            System.out.println("floor: "+floor(key, arr));
+            System.out.println("ceil: "+ceil(key, arr));
+            System.out.println("pred: "+pred(key, arr));
+            System.out.println("succ: "+succ(key, arr));
+            System.out.println("count: "+count(key, arr));
+            System.out.println("rank: "+rank(key, arr));
         }
         
     }
