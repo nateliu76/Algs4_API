@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.HashSet;
 
 //import edu.princeton.cs.algs4.Out;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.EdgeWeightedDigraph;
 
 public class IndexPairingHeapMinPQTest extends TestCase {
     
@@ -87,12 +89,79 @@ public class IndexPairingHeapMinPQTest extends TestCase {
         }
     }
     
-    public void testIncreaseKey() {}
+    public void testIncreaseKey() {
+        int size = 10000;
+        IndexPairingHeapMinPQ<Integer> ph = new IndexPairingHeapMinPQ<Integer>(size);
+        int[] r = randomArray(size);
+        for (int i = 0; i < size; i++) ph.insert(i, r[i]);
+        // randomly increase some keys and check
+        // 1. if keys are correctly increased
+        // 2. if order of min heap is still preserved
+        Random rnd = new Random();
+        for (int i = 0; i < 10; i++) {
+            int idx = Math.abs(rnd.nextInt()) % size;
+            int oldVal = ph.keyOf(idx);
+            int increase = Math.abs(rnd.nextInt()) % 10000;
+            ph.increaseKey(idx, ph.keyOf(idx) + increase);
+            assertTrue(ph.keyOf(idx) == oldVal + increase);
+        }
+        
+        int prev = Integer.MIN_VALUE;
+        for (int i : ph) {
+            assertTrue(prev <= ph.keyOf(i));
+            prev = ph.keyOf(i);
+        }
+    }
     
-    public void testDecreaseKey() {}
+    public void testDecreaseKey() {
+        int size = 10000;
+        IndexPairingHeapMinPQ<Integer> ph = new IndexPairingHeapMinPQ<Integer>(size);
+        int[] r = randomArray(size);
+        for (int i = 0; i < size; i++) ph.insert(i, r[i]);
+        // randomly decrease a few keys and check if
+        // 1. keys are correctly changed
+        // 2. order of min heap is preserved
+        Random rnd = new Random();
+        for (int i = 0; i < 10; i++) {
+            int idx = Math.abs(rnd.nextInt()) % size;
+            int oldVal = ph.keyOf(idx);
+            int decr = Math.abs(rnd.nextInt()) % 10000;
+            ph.decreaseKey(idx, ph.keyOf(idx) - decr);
+            assertTrue(ph.keyOf(idx) == oldVal - decr);
+        }
+        
+        int prev = Integer.MIN_VALUE;
+        for (int i : ph) {
+            assertTrue(prev <= ph.keyOf(i));
+            prev = ph.keyOf(i);
+        }
+    }
     
     // test Dijkstra's SP algorithm with index pairing heap as a integration test
-    public void testDijkstra() {}
+    public void testDijkstra() {
+        assertTrue(testWithFile("tinyEWD.txt"));
+        assertTrue(testWithFile("mediumEWD.txt"));
+    }
+    
+    private boolean testWithFile(String file) {
+        // make directed graph
+        In in1 = new In(file);
+        EdgeWeightedDigraph G1 = new EdgeWeightedDigraph(in1);
+        in1.close();
+        
+        // iterate over all vertices as source and compare distances between 
+        // DijkstraSP (golden output) and DijkstraUndirectedSP
+        for (int s = 0; s < G1.V(); s++) {
+            DijkstraSP sp = new DijkstraSP(G1, s);
+            DijkstraSPwPairingHeap spPH = new DijkstraSPwPairingHeap(G1, s);
+            // compare all the distances from source to vertex
+            for (int v = 0; v < G1.V(); v++) {
+                if (sp.distTo(v) != spPH.distTo(v)) 
+                    return false;
+            }
+        }
+        return true;        
+    }
     
     // make random arrays and validate testing
     private int[] randomArray(int size) {
