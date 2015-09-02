@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashSet;
 
-//import edu.princeton.cs.algs4.Out;
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.EdgeWeightedDigraph;
+import edu.princeton.cs.algs4.*;
 
 public class IndexPairingHeapMinPQTest extends TestCase {
     
@@ -139,11 +137,16 @@ public class IndexPairingHeapMinPQTest extends TestCase {
     
     // test Dijkstra's SP algorithm with index pairing heap as a integration test
     public void testDijkstra() {
-        assertTrue(testWithFile("tinyEWD.txt"));
-        assertTrue(testWithFile("mediumEWD.txt"));
+        assertTrue(testSPWithFile("tinyEWD.txt"));
+        assertTrue(testSPWithFile("mediumEWD.txt"));
     }
     
-    private boolean testWithFile(String file) {
+    public void testMST() {
+        assertTrue(testMSTWithFile("tinyEWG.txt"));
+        assertTrue(testMSTWithFile("mediumEWG.txt"));
+    }
+    
+    private boolean testSPWithFile(String file) {
         // make directed graph
         In in1 = new In(file);
         EdgeWeightedDigraph G1 = new EdgeWeightedDigraph(in1);
@@ -159,6 +162,32 @@ public class IndexPairingHeapMinPQTest extends TestCase {
                 if (sp.distTo(v) != spPH.distTo(v)) 
                     return false;
             }
+        }
+        return true;        
+    }
+    
+    private boolean testMSTWithFile(String file) {
+        // make graph
+        In in1 = new In(file);
+        EdgeWeightedGraph G1 = new EdgeWeightedGraph(in1);
+        in1.close();
+        
+        // compare MST's, should be same
+        PrimMST mst = new PrimMST(G1);
+        PrimMSTwPairingHeap mstPH = new PrimMSTwPairingHeap(G1);
+        
+        if (mst.weight() != mstPH.weight()) return false;
+        
+        // edges should be the same
+        ArrayList<Edge> al = new ArrayList<Edge>();
+        for (Edge e : mst.edges()) al.add(e);
+        int idx = 0;
+        for (Edge e1 : mst.edges()) {
+            Edge e2 = al.get(idx);
+            if (e1.either() != e2.either()) return false;
+            if (e1.other(e1.either()) != e2.other(e2.either())) return false;
+            if (e1.weight() != e2.weight()) return false;
+            idx++;
         }
         return true;        
     }
