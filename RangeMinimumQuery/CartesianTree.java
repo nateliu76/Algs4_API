@@ -137,7 +137,6 @@ public class CartesianTree {
     
     private void buildTourArray() {
         numsToTour = new int[nums.length];
-        Arrays.fill(numsToTour, -1);
         int tourSize = 2 * nums.length - 1;
         tour = new int[tourSize];
         tourToNums = new int[tourSize];
@@ -152,12 +151,11 @@ public class CartesianTree {
         while (!stack.isEmpty()) {
             int depth = stack.pop();
             int pos = stack.pop();
-            
-            if (numsToTour[pos] == -1) numsToTour[pos] = idx;
+            // store index mapping and tour value
+            numsToTour[pos] = idx;
             tour[idx] = depth;
             tourToNums[idx] = pos;
             idx++;
-            
             if (left[pos] != -1 && !leftVisited[pos]) {
                 stack.push(pos);
                 stack.push(depth);
