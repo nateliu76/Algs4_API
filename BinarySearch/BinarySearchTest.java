@@ -1,12 +1,7 @@
 import junit.framework.TestCase;
 
-/**
- * A JUnit test case class.
- * Every method starting with the word "test" will be called when running
- * the test with JUnit.
- */
 public class BinarySearchTest extends TestCase {
-    // small arrays to test edge cases and boundary conditions
+  
     int[] a1 = {10, 11};
     int[] a2 = {10};
     
@@ -15,7 +10,8 @@ public class BinarySearchTest extends TestCase {
         98, 99};
     
     public void testIndexOf() {
-        assertEquals(BinarySearch.indexOf(10, a1), 0);
+        assertEquals(BinarySearch.indexOf(10, a1), 0); // 0
+        assertEquals(BinarySearch.indexOf(11, a1), 1); // a.length - 1
         assertEquals(BinarySearch.indexOf(12, a1), -1);
         assertEquals(BinarySearch.indexOf(4, a1), -1);
         
@@ -57,31 +53,31 @@ public class BinarySearchTest extends TestCase {
         assertEquals(BinarySearch.lastIndexOf(99, a5), 17);
     }
     
-    public void testFloor() {
-        assertEquals(BinarySearch.floor(10, a1), 0);
-        assertEquals(BinarySearch.floor(11, a1), 1);
-        assertEquals(BinarySearch.floor(12, a1), 1);
-        assertEquals(BinarySearch.floor(9, a1), -1);
-        
-        assertEquals(BinarySearch.floor(10, a2), 0);
-        assertEquals(BinarySearch.floor(9, a2), -1);
-        assertEquals(BinarySearch.floor(12, a2), 0);
-        
-        assertEquals(BinarySearch.floor(80, a5), 13);
-    }
-    
-    public void testCeil() {
-        assertEquals(BinarySearch.ceil(10, a1), 0);
-        assertEquals(BinarySearch.ceil(11, a1), 1);
-        assertEquals(BinarySearch.ceil(12, a1), -1);
-        assertEquals(BinarySearch.ceil(9, a1), 0);
-        
-        assertEquals(BinarySearch.ceil(10, a2), 0);
-        assertEquals(BinarySearch.ceil(9, a2), 0);
-        assertEquals(BinarySearch.ceil(12, a2), -1);
-        
-        assertEquals(BinarySearch.ceil(20, a5), 5);
-    }
+//    public void testFloor() {
+//        assertEquals(BinarySearch.floor(10, a1), 0);
+//        assertEquals(BinarySearch.floor(11, a1), 1);
+//        assertEquals(BinarySearch.floor(12, a1), 1);
+//        assertEquals(BinarySearch.floor(9, a1), -1);
+//        
+//        assertEquals(BinarySearch.floor(10, a2), 0);
+//        assertEquals(BinarySearch.floor(9, a2), -1);
+//        assertEquals(BinarySearch.floor(12, a2), 0);
+//        
+//        assertEquals(BinarySearch.floor(80, a5), 13);
+//    }
+//    
+//    public void testCeil() {
+//        assertEquals(BinarySearch.ceil(10, a1), 0);
+//        assertEquals(BinarySearch.ceil(11, a1), 1);
+//        assertEquals(BinarySearch.ceil(12, a1), -1);
+//        assertEquals(BinarySearch.ceil(9, a1), 0);
+//        
+//        assertEquals(BinarySearch.ceil(10, a2), 0);
+//        assertEquals(BinarySearch.ceil(9, a2), 0);
+//        assertEquals(BinarySearch.ceil(12, a2), -1);
+//        
+//        assertEquals(BinarySearch.ceil(20, a5), 5);
+//    }
     
     public void testPred() {
         assertEquals(BinarySearch.pred(10, a1), -1);
@@ -94,7 +90,7 @@ public class BinarySearchTest extends TestCase {
         assertEquals(BinarySearch.pred(100, a5), 17);
         assertEquals(BinarySearch.pred(99, a5), 16);
     }
-    
+//    
     public void testSucc() {
         assertEquals(BinarySearch.succ(10, a1), 1);
         assertEquals(BinarySearch.succ(11, a1), -1);
