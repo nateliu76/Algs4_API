@@ -10,7 +10,6 @@
 import edu.princeton.cs.algs4.Stack;
 
 import java.util.Arrays;
-import java.util.ArrayList;
 
 /**
  * The CartesianTree class is a structure with mulitple applications. 
@@ -138,35 +137,41 @@ public class CartesianTree {
     
     private void buildTourArray() {
         numsToTour = new int[nums.length];
-        ArrayList<Integer> t = new ArrayList<Integer>();
-        ArrayList<Integer> t2n = new ArrayList<Integer>(); // tourToNums
+        Arrays.fill(numsToTour, -1);
+        int tourSize = 2 * nums.length - 1;
+        tour = new int[tourSize];
+        tourToNums = new int[tourSize];
         
-        eulerianTour(root, 0, t, t2n);
-        
-        tour = new int[t.size()];
-        tourToNums = new int[t.size()];
-        for (int i = 0; i < t.size(); i++) {
-            tour[i] = t.get(i);
-            tourToNums[i] = t2n.get(i);
-        }
-    }
-    
-    // DFS for constructing Eulerian tour array
-    private void eulerianTour(int pos, int depth, ArrayList<Integer> t, 
-                     ArrayList<Integer> t2n) {
-        numsToTour[pos] = t.size();
-        t.add(depth);
-        t2n.add(pos);
-        
-        if (left[pos] != -1) {
-            eulerianTour(left[pos], depth + 1, t, t2n);
-            t.add(depth);
-            t2n.add(pos);
-        }
-        if (right[pos] != -1) {
-            eulerianTour(right[pos], depth + 1, t, t2n);
-            t.add(depth);
-            t2n.add(pos);
+        // Eulerian tour implemented in an iterative DFS fashion
+        boolean[] leftVisited = new boolean[parent.length];
+        boolean[] rightVisited = new boolean[parent.length];
+        Stack<Integer> stack = new Stack<Integer>();
+        int idx = 0;
+        stack.push(root);
+        stack.push(0);
+        while (!stack.isEmpty()) {
+            int depth = stack.pop();
+            int pos = stack.pop();
+            
+            if (numsToTour[pos] == -1) numsToTour[pos] = idx;
+            tour[idx] = depth;
+            tourToNums[idx] = pos;
+            idx++;
+            
+            if (left[pos] != -1 && !leftVisited[pos]) {
+                stack.push(pos);
+                stack.push(depth);
+                stack.push(left[pos]);
+                stack.push(depth + 1);
+                leftVisited[pos] = true;
+            }
+            else if (right[pos] != -1 && !rightVisited[pos]) {
+                stack.push(pos);
+                stack.push(depth);
+                stack.push(right[pos]);
+                stack.push(depth + 1);
+                rightVisited[pos] = true;
+            }
         }
     }
 }
