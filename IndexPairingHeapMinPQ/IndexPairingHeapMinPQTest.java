@@ -136,14 +136,16 @@ public class IndexPairingHeapMinPQTest extends TestCase {
     }
     
     // test Dijkstra's SP algorithm with index pairing heap as a integration test
-    public void testDijkstra() {
+    public void testSP() {
         assertTrue(testSPWithFile("tinyEWD.txt"));
         assertTrue(testSPWithFile("mediumEWD.txt"));
+        assertTrue(testTimingSP());
     }
     
     public void testMST() {
         assertTrue(testMSTWithFile("tinyEWG.txt"));
         assertTrue(testMSTWithFile("mediumEWG.txt"));
+        assertTrue(testTimingMST());
     }
     
     private boolean testSPWithFile(String file) {
@@ -152,18 +154,43 @@ public class IndexPairingHeapMinPQTest extends TestCase {
         EdgeWeightedDigraph G1 = new EdgeWeightedDigraph(in1);
         in1.close();
         
-        // iterate over all vertices as source and compare distances between 
-        // DijkstraSP (golden output) and DijkstraUndirectedSP
+        // use the check fn in DijkstraSP to check for optimality
         for (int s = 0; s < G1.V(); s++) {
             DijkstraSP sp = new DijkstraSP(G1, s);
             DijkstraSPwPairingHeap spPH = new DijkstraSPwPairingHeap(G1, s);
-            // compare all the distances from source to vertex
-            for (int v = 0; v < G1.V(); v++) {
-                if (sp.distTo(v) != spPH.distTo(v)) 
-                    return false;
-            }
         }
-        return true;        
+        return true;
+    }
+    
+    private boolean testTimingSP() {
+        // make directed graph
+        In in1 = new In("largeEWD.txt");
+        long t3 = System.currentTimeMillis();
+        EdgeWeightedDigraph G1 = new EdgeWeightedDigraph(in1);
+        long t4 = System.currentTimeMillis();
+        in1.close();
+        
+        double readTime = (double) (t4 - t3);
+        System.out.println("read time: "+readTime);
+        
+        // record time of the constructor to check that pairing heap is faster
+        double binTime = 0;
+        double pairTime = 0;
+        // choose 5 edges as source
+        for (int s = 0; s < 5; s++) {
+            long t0 = System.currentTimeMillis();
+            DijkstraSP sp = new DijkstraSP(G1, s);
+            long t1 = System.currentTimeMillis();
+            DijkstraSPwPairingHeap spPH = new DijkstraSPwPairingHeap(G1, s);
+            long t2 = System.currentTimeMillis();
+            
+            binTime += (double) (t1 - t0);
+            pairTime += (double) (t2 - t1);
+        }
+        System.out.println("binary heap: "+binTime);
+        System.out.println("pairing heap: "+pairTime);
+        
+        return binTime > pairTime;
     }
     
     private boolean testMSTWithFile(String file) {
@@ -172,24 +199,37 @@ public class IndexPairingHeapMinPQTest extends TestCase {
         EdgeWeightedGraph G1 = new EdgeWeightedGraph(in1);
         in1.close();
         
-        // compare MST's, should be same
+        // use the check fn in DijkstraSP to check for optimality
         PrimMST mst = new PrimMST(G1);
         PrimMSTwPairingHeap mstPH = new PrimMSTwPairingHeap(G1);
         
-        if (mst.weight() != mstPH.weight()) return false;
+        return true;
+    }
+    
+    public boolean testTimingMST() {
+        // make graph
+        In in1 = new In("largeEWG.txt");
+        long t3 = System.currentTimeMillis();
+        EdgeWeightedGraph G1 = new EdgeWeightedGraph(in1);
+        long t4 = System.currentTimeMillis();
+        in1.close();
         
-        // edges should be the same
-        ArrayList<Edge> al = new ArrayList<Edge>();
-        for (Edge e : mst.edges()) al.add(e);
-        int idx = 0;
-        for (Edge e1 : mst.edges()) {
-            Edge e2 = al.get(idx);
-            if (e1.either() != e2.either()) return false;
-            if (e1.other(e1.either()) != e2.other(e2.either())) return false;
-            if (e1.weight() != e2.weight()) return false;
-            idx++;
-        }
-        return true;        
+        double readTime = (double) (t4 - t3);
+        System.out.println("read time: "+readTime);
+        
+        // record time of the constructor to check that pairing heap is faster
+        long t0 = System.currentTimeMillis();
+        PrimMST mst = new PrimMST(G1);
+        long t1 = System.currentTimeMillis();
+        PrimMSTwPairingHeap mstPH = new PrimMSTwPairingHeap(G1);
+        long t2 = System.currentTimeMillis();
+        
+        double binTime = (double) (t1 - t0);
+        double pairTime = (double) (t2 - t1);
+        System.out.println("binary heap: "+binTime);
+        System.out.println("pairing heap: "+pairTime);
+        
+        return binTime > pairTime;
     }
     
     // make random arrays and validate testing
