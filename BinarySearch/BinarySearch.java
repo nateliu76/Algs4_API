@@ -31,67 +31,43 @@ public class BinarySearch {
     }
     
     // return the smallest index i such a[i] equals key
-    // use pred + 1 instead?
+    // use pred + 1 instead
     public static int firstIndexOf(int key, int[] a) {
         if (a.length == 0) return -1;
-        int lo = -1;
-        int hi = a.length - 1;
-        while (hi > lo + 1) {
-            int mid = lo + (hi - lo) / 2;
-            int c = Integer.compare(a[mid], key);
-            if (c >= 0) hi = mid;
-            else lo = mid;
-        }
-        if (Integer.compare(a[hi], key) == 0) return hi;
-        else return -1;
+        if (a[0] == key) return 0;
+        int pred = pred(key, a);
+        if (pred == -1 || pred == a.length - 1 || a[pred + 1] != key) return -1;
+        else return pred + 1;
     }
     
     // return the largest index i such a[i] equals key
-    // use succ - 1 instead?
+    // use succ - 1 instead
     public static int lastIndexOf(int key, int[] a) {
         if (a.length == 0) return -1;
-        int lo = 0;
-        int hi = a.length;
-        while (hi > lo + 1) {
-            int mid = lo + (hi - lo) / 2;
-            int c = Integer.compare(a[mid], key);
-            if (c <= 0) lo = mid;
-            else hi = mid;
-        }
-        if (Integer.compare(a[lo], key) == 0) return lo;
-        else return -1;
+        if (a[a.length - 1] == key) return a.length - 1;
+        int succ = succ(key, a);
+        if (succ <= 0 || a[succ - 1] != key) return -1;
+        else return succ - 1;
     }
     
     // index of largest key less than or equal to a given key
     // use succ - 1
     public static int floor(int key, int[] a) {
         if (a.length == 0) return -1;
-        int lo = 0;
-        int hi = a.length;
-        while (hi > lo + 1) {
-            int mid = lo + (hi - lo) / 2;
-            int c = Integer.compare(a[mid], key);
-            if (c <= 0) lo = mid;
-            else hi = mid;
-        }
-        if (Integer.compare(a[lo], key) <= 0) return lo;
-        else return -1;
+        if (a[a.length - 1] <= key) return a.length - 1;
+        int succ = succ(key, a);
+        if (succ <= 0) return -1;
+        else return succ - 1;
     }
     
     // index of smallest key greater than or equal to a given key
     // use pred + 1
     public static int ceil(int key, int[] a) {
         if (a.length == 0) return -1;
-        int lo = -1;
-        int hi = a.length - 1;
-        while (hi > lo + 1) {
-            int mid = lo + (hi - lo) / 2;
-            int c = Integer.compare(a[mid], key);
-            if (c >= 0) hi = mid;
-            else lo = mid;
-        }
-        if (Integer.compare(a[hi], key) >= 0) return hi;
-        else return -1;
+        if (a[0] >= key) return 0;
+        int pred = pred(key, a);
+        if (pred == a.length - 1) return -1;
+        else return pred + 1;
     }
     
     // index of largest key strictly less than a given key
