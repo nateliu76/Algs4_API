@@ -1,14 +1,12 @@
 /******************************************************************************
- *  Compilation:  javac DirectedEulerianCycle.java
- *  Execution:    java DirectedEulerianCycle V E
- *  Dependencies: Digraph.java Stack.java Queue.java StdOut.java
- *
- *  Find an Eulerian cycle in a digraph, if one exists.
- *
- *  Runs in O(E + V) time.
- *
- *
- ******************************************************************************/
+  * Compilation:  javac DirectedEulerianPath.java
+  * Execution:    java DirectedEulerianPath V E
+  * Dependencies: Digraph.java Stack.java StdOut.java StdRandom.java
+  *
+  * Finds an Eulerian path in a digraph, if one exists.
+  * Runs in O(E + V) time.
+  *
+  ******************************************************************************/
 
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.Stack;
@@ -17,63 +15,117 @@ import edu.princeton.cs.algs4.StdOut;
 
 import java.util.Iterator;
 
+/**
+ * The DirectedEulerianPath class represents a data type for finding
+ * the Eulerian path or cycle in a digraph.
+ * The constructor runs in O(E + V) time, and takes O(E) space, where
+ * E is the number of edges and V the number of vertices
+ * 
+ * All other methods have O(1) space and time complexity
+ * 
+ * @author Robert Sedgewick
+ * @author Kevin Wayne
+ * @author Nate Liu
+ */
 public class DirectedEulerianPath {
-    private Stack<Integer> cycle = new Stack<Integer>();
-    private boolean isEulerian = true;
-
-    // find Eulerian path
+    private Stack<Integer> path = new Stack<Integer>();
+    private boolean isEulerianPath = true;
+    private boolean isEulerianCycle = true;
+    
+    /**
+     * Computes Eulerian Path or Cycle on the Digraph G
+     * 
+     * @param G the digraph
+     */
     public DirectedEulerianPath(Digraph G) {
-
+        
+        // need out degree of vertices to find starting point
+        // use G.reverse() to obtain out degrees
+        Digraph Grev = G.reverse();
+        
         // create local view of adjacency lists
         Iterator<Integer>[] adj = (Iterator<Integer>[]) new Iterator[G.V()];
-        for (int v = 0; v < G.V(); v++)
-            adj[v] = G.adj(v).iterator();
-
-        // find vertex with nonzero degree as start of potential Eulerian cycle
-        int s = 0;
+        int unevenDegCount = 0;
+        int s = -1;
         for (int v = 0; v < G.V(); v++) {
-            if (adj[v].hasNext()) {
-                s = v;
-                break;
+            adj[v] = G.adj(v).iterator();
+            // choose vertex with higher out degree than in degree as
+            // source, if such vertex doesn't exist, choose vertex 
+            // with nonzero outdegree as source
+            if (s == -1 && adj[v].hasNext()) s = v;
+            if (G.outdegree(v) != Grev.outdegree(v)) {
+                unevenDegCount++;
+                if (G.outdegree(v) > Grev.outdegree(v)) 
+                    s = v;
             }
         }
-
-        // greedily add to cycle, depth-first search style
-        Stack<Integer> stack = new Stack<Integer>();
-        stack.push(s);
-        while (!stack.isEmpty()) {
-            int v = stack.pop();
-            cycle.push(v);
-            int w = v;
-            while (adj[w].hasNext()) {
-                stack.push(w);
-                w = adj[w].next();
-            }
-            if (w != v) isEulerian = false;
+        
+        if (unevenDegCount != 0 && unevenDegCount != 2) {
+            isEulerianPath = false;
+            isEulerianCycle = false;
         }
-
-        // check if all edges have been used
-        for (int v = 0; v < G.V(); v++)
-            if (adj[v].hasNext()) isEulerian = false;
+        else {
+            isEulerianPath = true;
+            isEulerianCycle = unevenDegCount == 0;
+            
+            // greedily add to cycle, depth-first search style
+            Stack<Integer> stack = new Stack<Integer>();
+            stack.push(s);
+            while (!stack.isEmpty()) {
+                int v = stack.pop();
+                while (adj[v].hasNext()) {
+                    stack.push(v);
+                    v = adj[v].next();
+                }
+                // push vertex with no more available edges to path
+                path.push(v);
+            }
+            
+            // check if all edges have been used
+            for (int v = 0; v < G.V(); v++) {
+                if (adj[v].hasNext()) {
+                    isEulerianPath = false;
+                    isEulerianCycle = false;
+                    break;
+                }
+            }
+        }
     }
-
-    // return Eulerian cycle, or null if no such tour
-    public Iterable<Integer> cycle() {
-        if (!isEulerian) return null;
-        return cycle;
+    
+    /**
+     * Returns the sequence of vertices in the Eulerian path/cycle
+     * 
+     * @return an Eulerian path/cycle
+     *         null if no such path
+     */
+    public Iterable<Integer> path() {
+        if (!isEulerianPath) return null;
+        return path;
     }
-
-    // does the digraph have an Eulerian tour?
-    public boolean isEulerian() {
-        return isEulerian;
+    
+    /**
+     * Returns if the digraph has an Eulerian path
+     * 
+     * @return true if an Eulerian path exists
+     */
+    public boolean isEulerianPath() {
+        return isEulerianPath;
     }
-
-
-
+    
+    /**
+     * Returns if the digraph has an Eulerian cycle
+     * 
+     * @return true if an Eulerian cycle exists
+     */
+    public boolean isEulerianCycle() {
+        return isEulerianCycle;
+    }
+    
+    // graph generator that tries to generate Eulerian Cycle
     public static void main(String[] args) {
         int V = Integer.parseInt(args[0]);
         int E = Integer.parseInt(args[1]);
-
+        
         // random graph of V vertices and approximately E edges
         // with indegree[v] = outdegree[v] for all vertices
         Digraph G = new Digraph(V);
@@ -92,7 +144,7 @@ public class DirectedEulerianPath {
             else                             deficit--;
             indegree[w]++;
         }
-
+        
         while (deficit > 0) {
             int v = StdRandom.uniform(V);
             int w = StdRandom.uniform(V);
@@ -107,11 +159,11 @@ public class DirectedEulerianPath {
             else                             deficit--;
             indegree[w]++;
         }
-
+        
         StdOut.println(G);
         DirectedEulerianPath euler = new DirectedEulerianPath(G);
-        if (euler.isEulerian()) {
-            for (int v : euler.cycle()) {
+        if (euler.isEulerianPath()) {
+            for (int v : euler.path()) {
                 StdOut.print(v + " ");
             }
             StdOut.println();
@@ -120,5 +172,4 @@ public class DirectedEulerianPath {
             StdOut.println("Not eulerian");
         }
     }
-
 }
