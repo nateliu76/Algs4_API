@@ -12,6 +12,7 @@ import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.In;
 
 import java.util.Iterator;
+import java.util.HashMap;
 
 /**
  * The EulerianPath class represents a data type for finding the Eulerian path 
@@ -28,7 +29,7 @@ public class EulerianPath {
     private boolean hasEulerianPath;
     private boolean hasEulerianCycle;
     private Iterator<Integer>[] adj;
-    private int[][] visited;
+    private HashMap<String, Integer> visited;
     
     /**
      * Computes Eulerian Path or Cycle on the Graph G
@@ -46,7 +47,10 @@ public class EulerianPath {
         // We decrement the count w -> v after it is skipped
         // In other words visited stores the amount of skips for the 
         // certain edge
-        visited = new int[G.V()][G.V()];
+        // This is implemented with a hash table
+        // The key is a string made by appending the vertices using "_" as
+        // a seperator
+        visited = new HashMap<String, Integer>();
         adj = (Iterator<Integer>[]) new Iterator[G.V()];
         
         // search through edges and find how many have odd degrees
@@ -80,7 +84,9 @@ public class EulerianPath {
                     if (w == -1) break;
                     else {
                         stack.push(v);
-                        visited[w][v]++;
+                        String e = makeKey(w, v);
+                        if (!visited.containsKey(e)) visited.put(e, 1);
+                        else visited.put(e, visited.get(e) + 1);
                         v = w;
                     }
                 }
@@ -105,14 +111,20 @@ public class EulerianPath {
     private int getNextEdge(int v) {
         int w = adj[v].next();
         // skip edges that are used
-        while (visited[v][w] > 0) {
-            visited[v][w]--;
+        String e = makeKey(v, w);
+        while (visited.containsKey(e) && visited.get(e) > 0) {
+            visited.put(e, visited.get(e) - 1);
             if (!adj[v].hasNext()) return -1;
             else w = adj[v].next();
+            e = makeKey(v, w);
         }
         return w;
     }
     
+    // makes the key of the hashmap
+    private String makeKey(int v, int w) {
+        return v + "_" + w;
+    }
     
     /**
      * Returns if the undirected graph has an Eulerian path
