@@ -1,6 +1,6 @@
 # Algs4_API
 
-Improved binary search with functions similar to that of a BST
+Binary search with functions similar to that of a BST
 
 Dijkstra's SP in undirected graph
 
