@@ -12,13 +12,13 @@ import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.In;
 
 import java.util.Iterator;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * The EulerianPath class represents a data type for finding the Eulerian path 
  * or cycle in an undirected graph with no edge weights
- * The constructor takes time and space proportional to O(E), where E is the 
- * number of edges.
+ * The constructor takes time and space proportional to O(E + V), where E is the 
+ * number of edges and V the number of vertices.
  * All methods have O(1) time and space complexity
  * 
  * @author Nate Liu
@@ -28,8 +28,26 @@ public class EulerianPath {
     private Stack<Integer> path = new Stack<Integer>();
     private boolean hasEulerianPath;
     private boolean hasEulerianCycle;
-    private Iterator<Integer>[] adj;
-    private HashMap<String, Integer> visited;
+    private ArrayList<UndirectedEdge>[] adj;
+    private Iterator<UndirectedEdge>[] adjIter;
+    
+    private class UndirectedEdge {
+        private int v1;
+        private int v2;
+        private boolean isUsed;
+        
+        public UndirectedEdge(int a, int b) {
+            v1 = a;
+            v2 = b;
+            isUsed = false;
+        }
+        
+        public int other(int w) {
+            if (w == v1) return v2;
+            else if (w == v2) return v1;
+            else return -1;
+        }
+    }
     
     /**
      * Computes Eulerian Path or Cycle on the Graph G
@@ -38,29 +56,30 @@ public class EulerianPath {
      */
     public EulerianPath(Graph G) {
         
-        // Because the Graph API uses the adjacency list implementation, 
-        // each edge is stored twice. 
-        // Ex: once for v -> w and once for w -> v
-        // To avoid using the same edge twice, each time an edge v -> w is 
-        // used, we increment the count for w -> v so that next time when 
-        // we are about to use w -> v, we can see that we need to skip it. 
-        // We decrement the count w -> v after it is skipped
-        // In other words visited stores the amount of skips for the 
-        // certain edge
-        // This is implemented with a hash table
-        // The key is a string made by appending the vertices using "_" as
-        // a seperator
-        visited = new HashMap<String, Integer>();
-        adj = (Iterator<Integer>[]) new Iterator[G.V()];
+        adj = (ArrayList<UndirectedEdge>[]) new ArrayList[G.V()];
+        adjIter = (Iterator<UndirectedEdge>[]) new Iterator[G.V()];
         
-        // search through edges and find how many have odd degrees
         int oddDegCount = 0;
-        int s = 0;
+        int s = -1;
         for (int v = 0; v < G.V(); v++) {
-            adj[v] = G.adj(v).iterator();
+            // initialize adjacency list for vertex v
+            if (adj[v] == null) adj[v] = new ArrayList<UndirectedEdge>();
+            for (int i : G.adj(v)) {
+                if (i > v) {
+                    UndirectedEdge ue = new UndirectedEdge(v, i);
+                    adj[v].add(ue);
+                    if (adj[i] == null) adj[i] = new ArrayList<UndirectedEdge>();
+                    adj[i].add(ue);
+                }
+                else if (i == v) adj[v].add(new UndirectedEdge(i, i));
+            }
+            adjIter[v] = adj[v].iterator();
+            
+            // set starting point as vertex with odd degree or vertex with
+            // nonzero degree if the previous doesn't exist
+            if (s == -1 && G.degree(v) != 0) s = v;
             if (G.degree(v) % 2 != 0) {
                 oddDegCount++;
-                // set edge with odd degree as starting point
                 s = v;
             }
         }
@@ -79,14 +98,11 @@ public class EulerianPath {
             while (!stack.isEmpty()) {
                 int v = stack.pop();
                 // greedily search through edges
-                while (adj[v].hasNext()) {
+                while (adjIter[v].hasNext()) {
                     int w = getNextEdge(v);
                     if (w == -1) break;
                     else {
                         stack.push(v);
-                        String e = makeKey(w, v);
-                        if (!visited.containsKey(e)) visited.put(e, 1);
-                        else visited.put(e, visited.get(e) + 1);
                         v = w;
                     }
                 }
@@ -96,7 +112,7 @@ public class EulerianPath {
             
             // check if all edges are used
             for (int v = 0; v < G.V(); v++) {
-                if (adj[v].hasNext()) {
+                if (adjIter[v].hasNext()) {
                     hasEulerianPath = false;
                     hasEulerianCycle = false;
                     break;
@@ -109,21 +125,16 @@ public class EulerianPath {
     // searches and returns next unused edge
     // if no valid edges are present, return -1
     private int getNextEdge(int v) {
-        int w = adj[v].next();
+        int w = -1;
         // skip edges that are used
-        String e = makeKey(v, w);
-        while (visited.containsKey(e) && visited.get(e) > 0) {
-            visited.put(e, visited.get(e) - 1);
-            if (!adj[v].hasNext()) return -1;
-            else w = adj[v].next();
-            e = makeKey(v, w);
+        while (adjIter[v].hasNext() && w == -1) {
+            UndirectedEdge ue = adjIter[v].next();
+            if (!ue.isUsed) {
+                ue.isUsed = true;
+                w = ue.other(v);
+            }
         }
         return w;
-    }
-    
-    // makes the key of the hashmap
-    private String makeKey(int v, int w) {
-        return v + "_" + w;
     }
     
     /**
