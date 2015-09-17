@@ -1,6 +1,6 @@
 /******************************************************************************
- *  Compilation:  javac EulerianPathAndCycle.java
- *  Execution:    java EulerianPathAndCycle input.txt
+ *  Compilation:  javac EulerianPath.java
+ *  Execution:    java EulerianPath input.txt
  *  Dependencies: Graph.java Stack.java Queue.java
  *
  *  Finds Eulerian Path in an undirected graph
@@ -15,19 +15,20 @@ import edu.princeton.cs.algs4.In;
 
 /**
  * The EulerianPath class represents a data type for finding the Eulerian path 
- * or cycle in an undirected graph with no edge weights
+ * in an undirected graph with no edge weights
  * The constructor takes time and space proportional to O(E + V), where E is the 
  * number of edges and V the number of vertices.
- * All other methods have O(1) time and space complexity
+ * The methods hasEulerianCycle() and cycle() have O(1) time and space 
+ * complexity.
  * 
  * @author Nate Liu
  */
 public class EulerianPath {
-    private Stack<Integer> path = null;
+    private Stack<Integer> path = null; // Eulerian path, null if no such cycle
     
     /**
      * The UndirectedEdge class represents an edge in an undirected graph, and
-     * has a field specifying if that certain edge is used
+     * has a field specifying if that certain edge is used.
      */
     private class UndirectedEdge {
         private int v1;
@@ -49,77 +50,79 @@ public class EulerianPath {
     }
     
     /**
-     * Computes Eulerian Path and/or Cycle on the Graph G
+     * Computes Eulerian Path on the Graph G
      * 
      * @param G the undirected graph
      */
     public EulerianPath(Graph G) {
         
-        // the adjacency list is reconstructed using the private class 
-        // UndirectedEdge to avoid traversing the same edge twice
-        Queue<UndirectedEdge>[] adj = (Queue<UndirectedEdge>[]) new Queue[G.V()];
+        // must have at least one edge
+        if (G.E() == 0) return;
         
+        // necessary condition: number of vertices with odd degrees == 0
         int oddDegCount = 0;
-        int s = -1;
+        for (int v = 0; v < G.V(); v++) 
+            if (G.degree(v) % 2 != 0) oddDegCount++;
+        if (oddDegCount != 0 && oddDegCount != 2) return;
+        
+        // create adjacency list with the private class UndirectedEdge
+        Queue<UndirectedEdge>[] adj = (Queue<UndirectedEdge>[]) new Queue[G.V()];
         for (int v = 0; v < G.V(); v++) {
             // initialize adjacency list for vertex v
             if (adj[v] == null) adj[v] = new Queue<UndirectedEdge>();
-            for (int i : G.adj(v)) {
-                if (i > v) {
-                    UndirectedEdge ue = new UndirectedEdge(v, i);
+            for (int w : G.adj(v)) {
+                if (w > v) {
+                    if (adj[w] == null) adj[w] = new Queue<UndirectedEdge>();
+                    // add edge to adj list of v and w so the adj list of the 
+                    // two vertices reference the same edge
+                    UndirectedEdge ue = new UndirectedEdge(v, w);
                     adj[v].enqueue(ue);
-                    // add the same edge to other vertex so reference the two
-                    // vertices reference the same edge
-                    if (adj[i] == null) adj[i] = new Queue<UndirectedEdge>();
-                    adj[i].enqueue(ue);
+                    adj[w].enqueue(ue);
                 }
-                else if (i == v) adj[v].enqueue(new UndirectedEdge(i, i));
-            }
-            
-            // set starting point as vertex with odd degree or vertex with
-            // nonzero degree if the previous doesn't exist
-            if (s == -1 && G.degree(v) != 0) s = v;
-            if (G.degree(v) % 2 != 0) {
-                oddDegCount++;
-                s = v;
+                // edge for self loop
+                else if (w == v) adj[v].enqueue(new UndirectedEdge(w, w));
             }
         }
         
-        if (oddDegCount == 0 || oddDegCount == 2) {
-            // DFS
-            path = new Stack<Integer>();
-            Stack<Integer> stack = new Stack<Integer>();
-            stack.push(s);
-            while (!stack.isEmpty()) {
-                int v = stack.pop();
-                // greedily search through edges
-                while (!adj[v].isEmpty()) {
-                    // find next unused edge of v
-                    UndirectedEdge edge = null;
-                    while (!adj[v].isEmpty()) {
-                        UndirectedEdge nextEdge = adj[v].dequeue();
-                        if (!nextEdge.isUsed) {
-                            nextEdge.isUsed = true;
-                            edge = nextEdge;
-                            break;
-                        }
-                    }
-                    if (edge == null) break;
-                    stack.push(v);
-                    v = edge.other(v);
-                }
-                // push vertex with no more edges available to path
-                path.push(v);
-            }
-            
-            // check if all edges are used
-            for (int v = 0; v < G.V(); v++) {
-                if (!adj[v].isEmpty()) {
-                    path = null;
-                    break;
-                }
+        // initialize stack with vertex that has an odd degree of edges
+        int s = -1;
+        for (int v = 0; v < G.V(); v++) {
+            if (oddDegCount == 0 && G.degree(v) > 0 || 
+                    G.degree(v) % 2 != 0) {
+                s = v;
+                break;
             }
         }
+        Stack<Integer> stack = new Stack<Integer>();
+        stack.push(s);
+        
+        // greedily search through edges in iterative DFS style
+        path = new Stack<Integer>();
+        while (!stack.isEmpty()) {
+            int v = stack.pop();
+            while (!adj[v].isEmpty()) {
+                
+                // find next unused edge of v
+                UndirectedEdge edge = null;
+                while (!adj[v].isEmpty()) {
+                    UndirectedEdge nextEdge = adj[v].dequeue();
+                    if (!nextEdge.isUsed) {
+                        nextEdge.isUsed = true;
+                        edge = nextEdge;
+                        break;
+                    }
+                }
+                if (edge == null) break;
+                stack.push(v);
+                v = edge.other(v);
+            }
+            // push vertex with no more edges available to path
+            path.push(v);
+        }
+        
+        // check if all edges are used
+        if (path.size() != G.E() + 1)
+            path = null;
     }
     
     
@@ -145,10 +148,10 @@ public class EulerianPath {
     
     
     /**
-     * Returns the sequence of vertices in the Eulerian path/cycle in a 
-     * String format
+     * Returns the sequence of vertices in the Eulerian path in a 
+     * String format.
      * 
-     * @return an Eulerian path/cycle in String
+     * @return an Eulerian path in String
      *         null String if no such path
      */
     public String toString() {
@@ -163,7 +166,7 @@ public class EulerianPath {
         Graph G1 = new Graph(in1);
         EulerianPath ep1 = new EulerianPath(G1);
         if (ep1.hasEulerianPath()) System.out.println("Eulerian Path detected:");
-        else System.out.println("No Eulerian Path or Cycle detected");
+        else System.out.println("No Eulerian Path detected");
         System.out.println(ep1.toString());
     }
 }
