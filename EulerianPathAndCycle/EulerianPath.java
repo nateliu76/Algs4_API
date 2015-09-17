@@ -1,18 +1,17 @@
 /******************************************************************************
  *  Compilation:  javac EulerianPathAndCycle.java
  *  Execution:    java EulerianPathAndCycle input.txt
- *  Dependencies: Graph.java Stack.java Edge.java
+ *  Dependencies: Graph.java Stack.java Queue.java
  *
- *  Finds Eulerian Path or Cycle in an undirected graph
+ *  Finds Eulerian Path in an undirected graph
  *
  ******************************************************************************/
 
 import edu.princeton.cs.algs4.Graph;
 import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.In;
 
-import java.util.Iterator;
-import java.util.ArrayList;
 
 /**
  * The EulerianPath class represents a data type for finding the Eulerian path 
@@ -23,16 +22,8 @@ import java.util.ArrayList;
  * 
  * @author Nate Liu
  */
-public class EulerianPathAndCycle {
-    
-    // constructs an adjacency list using the custom private class 
-    // UndirectedEdge for finding Eulerian path/cycle with the Graph API
-    private ArrayList<UndirectedEdge>[] adj;
-    private Iterator<UndirectedEdge>[] adjIter;
-    
-    private Stack<Integer> path = new Stack<Integer>();
-    private boolean isEulerianPath;
-    private boolean isEulerianCycle;
+public class EulerianPath {
+    private Stack<Integer> path = null;
     
     /**
      * The UndirectedEdge class represents an edge in an undirected graph, and
@@ -62,34 +53,28 @@ public class EulerianPathAndCycle {
      * 
      * @param G the undirected graph
      */
-    public EulerianPathAndCycle(Graph G) {
+    public EulerianPath(Graph G) {
         
         // the adjacency list is reconstructed using the private class 
         // UndirectedEdge to avoid traversing the same edge twice
-        adj = (ArrayList<UndirectedEdge>[]) new ArrayList[G.V()];
-        
-        // once the adjacency list is constructed, we will use iterators to
-        // iterate over the edges
-        adjIter = (Iterator<UndirectedEdge>[]) new Iterator[G.V()];
+        Queue<UndirectedEdge>[] adj = (Queue<UndirectedEdge>[]) new Queue[G.V()];
         
         int oddDegCount = 0;
         int s = -1;
         for (int v = 0; v < G.V(); v++) {
             // initialize adjacency list for vertex v
-            if (adj[v] == null) adj[v] = new ArrayList<UndirectedEdge>();
+            if (adj[v] == null) adj[v] = new Queue<UndirectedEdge>();
             for (int i : G.adj(v)) {
                 if (i > v) {
                     UndirectedEdge ue = new UndirectedEdge(v, i);
-                    adj[v].add(ue);
-                    if (adj[i] == null) adj[i] = new ArrayList<UndirectedEdge>();
+                    adj[v].enqueue(ue);
                     // add the same edge to other vertex so reference the two
                     // vertices reference the same edge
-                    adj[i].add(ue);
+                    if (adj[i] == null) adj[i] = new Queue<UndirectedEdge>();
+                    adj[i].enqueue(ue);
                 }
-                else if (i == v) adj[v].add(new UndirectedEdge(i, i));
+                else if (i == v) adj[v].enqueue(new UndirectedEdge(i, i));
             }
-            // convert to iterator form for traversal convenience
-            adjIter[v] = adj[v].iterator();
             
             // set starting point as vertex with odd degree or vertex with
             // nonzero degree if the previous doesn't exist
@@ -100,25 +85,28 @@ public class EulerianPathAndCycle {
             }
         }
         
-        if (oddDegCount != 0 && oddDegCount != 2) {
-            isEulerianPath = false;
-            isEulerianCycle = false;
-        } 
-        else {
-            isEulerianCycle = oddDegCount == 0;
-            isEulerianPath = true;
-            
+        if (oddDegCount == 0 || oddDegCount == 2) {
             // DFS
+            path = new Stack<Integer>();
             Stack<Integer> stack = new Stack<Integer>();
             stack.push(s);
             while (!stack.isEmpty()) {
                 int v = stack.pop();
                 // greedily search through edges
-                while (adjIter[v].hasNext()) {
-                    int w = getNextEdge(v);
-                    if (w == -1) break;
+                while (!adj[v].isEmpty()) {
+                    // find next unused edge of v
+                    UndirectedEdge edge = null;
+                    while (!adj[v].isEmpty()) {
+                        UndirectedEdge nextEdge = adj[v].dequeue();
+                        if (!nextEdge.isUsed) {
+                            nextEdge.isUsed = true;
+                            edge = nextEdge;
+                            break;
+                        }
+                    }
+                    if (edge == null) break;
                     stack.push(v);
-                    v = w;
+                    v = edge.other(v);
                 }
                 // push vertex with no more edges available to path
                 path.push(v);
@@ -126,9 +114,8 @@ public class EulerianPathAndCycle {
             
             // check if all edges are used
             for (int v = 0; v < G.V(); v++) {
-                if (adjIter[v].hasNext()) {
-                    isEulerianPath = false;
-                    isEulerianCycle = false;
+                if (!adj[v].isEmpty()) {
+                    path = null;
                     break;
                 }
             }
@@ -137,40 +124,12 @@ public class EulerianPathAndCycle {
     
     
     /**
-     * Returns vertex that is connected to current vertex v via v's next
-     * unused edge.
-     * If all edges are used or nonexistant, return -1
-     */
-    private int getNextEdge(int v) {
-        int w = -1;
-        // skip edges that are used
-        while (adjIter[v].hasNext() && w == -1) {
-            UndirectedEdge ue = adjIter[v].next();
-            if (!ue.isUsed) {
-                ue.isUsed = true;
-                w = ue.other(v);
-            }
-        }
-        return w;
-    }
-    
-    /**
      * Returns if the undirected graph has an Eulerian path.
      * 
      * @return true if an Eulerian path exists; false otherwise
      */
-    public boolean isEulerianPath() {
-        return isEulerianPath;
-    }
-    
-    
-    /**
-     * Returns if the undirected graph has an Eulerian cycle.
-     * 
-     * @return true if an Eulerian cycle exists; false otherwise
-     */
-    public boolean isEulerianCycle() {
-        return isEulerianCycle;
+    public boolean hasEulerianPath() {
+        return path != null;
     }
     
     
@@ -181,18 +140,6 @@ public class EulerianPathAndCycle {
      *         null if no such path
      */
     public Iterable<Integer> path() {
-        if (!isEulerianPath) return null;
-        return path;
-    }
-    
-    /**
-     * Returns the sequence of vertices in the Eulerian cycle.
-     * 
-     * @return an Eulerian cycle
-     *         null if no such cycle
-     */
-    public Iterable<Integer> cycle() {
-        if (!isEulerianCycle) return null;
         return path;
     }
     
@@ -205,19 +152,17 @@ public class EulerianPathAndCycle {
      *         null String if no such path
      */
     public String toString() {
-        if (!isEulerianPath) return "";
         return path.toString();
     }
     
     /**
-     * Prints out the Eulerian path/cycle if it exists
+     * Prints out the Eulerian path if it exists
      */
     public static void main(String[] args) {
         In in1 = new In(args[0]);
         Graph G1 = new Graph(in1);
-        EulerianPathAndCycle ep1 = new EulerianPathAndCycle(G1);
-        if (ep1.isEulerianCycle) System.out.println("Eulerian Cycle detected:");
-        else if (ep1.isEulerianPath) System.out.println("Eulerian Path detected:");
+        EulerianPath ep1 = new EulerianPath(G1);
+        if (ep1.hasEulerianPath()) System.out.println("Eulerian Path detected:");
         else System.out.println("No Eulerian Path or Cycle detected");
         System.out.println(ep1.toString());
     }
