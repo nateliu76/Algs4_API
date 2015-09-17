@@ -13,27 +13,21 @@ import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.In;
 
 /**
- * The EulerianPath class represents a data type for finding the Eulerian path 
- * or cycle in an undirected graph with no edge weights
+ * The EulerianCycle class represents a data type for finding the Eulerian
+ * cycle in an undirected graph with no edge weights
  * The constructor takes time and space proportional to O(E + V), where E is the 
  * number of edges and V the number of vertices.
- * All other methods have O(1) time and space complexity
+ * The methods hasEulerianCycle() and cycle() have O(1) time and space 
+ * complexity.
  * 
  * @author Nate Liu
  */
 public class EulerianCycle {
-    
-    // constructs an adjacency list using the custom private class 
-    // UndirectedEdge for finding Eulerian path/cycle with the Graph API
-    private Queue<UndirectedEdge>[] adj;
-    
-    private Stack<Integer> cycle = null;
+    private Stack<Integer> cycle = null; // Eulerian Cycle, null if no such cycle
     
     /**
      * The UndirectedEdge class represents an edge in an undirected graph, and
      * has a field specifying if that certain edge is used.
-     * This will help us avoid traversing the same edge twice when searching
-     * for the Eulerian cycle
      */
     private class UndirectedEdge {
         private int v1;
@@ -46,7 +40,7 @@ public class EulerianCycle {
             isUsed = false;
         }
         
-        // returns other vertex
+        // returns other vertex of undirected edge
         public int other(int w) {
             if (w == v1) return v2;
             else if (w == v2) return v1;
@@ -55,7 +49,7 @@ public class EulerianCycle {
     }
     
     /**
-     * Computes Eulerian Path and/or Cycle on the Graph G
+     * Computes Eulerian Cycle on the Graph G
      * 
      * @param G the undirected graph
      */
@@ -70,31 +64,37 @@ public class EulerianCycle {
             if (G.degree(v) % 2 != 0) oddDegCount++;
         if (oddDegCount != 0) return;
         
-        // create adjacency list
-        adj = (Queue<UndirectedEdge>[]) new Queue[G.V()];
+        // create adjacency list with the private class UndirectedEdge
+        Queue<UndirectedEdge>[] adj = (Queue<UndirectedEdge>[]) new Queue[G.V()];
         for (int v = 0; v < G.V(); v++) {
             // initialize adjacency list for vertex v
             if (adj[v] == null) adj[v] = new Queue<UndirectedEdge>();
             for (int w : G.adj(v)) {
                 if (w > v) {
+                    if (adj[w] == null) adj[w] = new Queue<UndirectedEdge>();
+                    // add edge to adj list of v and w so the adj list of the 
+                    // two vertices reference the same edge
                     UndirectedEdge ue = new UndirectedEdge(v, w);
                     adj[v].enqueue(ue);
-                    // add same edge to other vertex so the two vertices v and 
-                    // w reference the same edge
-                    if (adj[w] == null) adj[w] = new Queue<UndirectedEdge>();
                     adj[w].enqueue(ue);
                 }
-                // add edge for self loop
+                // edge for self loop
                 else if (w == v) adj[v].enqueue(new UndirectedEdge(w, w));
             }
         }
         
         // initialize stack with any non-isolated vertex
-        int s = nonIsolatedVertex(G);
+        int s = -1;
+        for (int v = 0; v < G.V(); v++) {
+            if (G.degree(v) > 0) {
+                s = v;
+                break;
+            }
+        }
         Stack<Integer> stack = new Stack<Integer>();
         stack.push(s);
         
-        // greedily search through edges in DFS style
+        // greedily search through edges in iterative DFS style
         cycle = new Stack<Integer>();
         while (!stack.isEmpty()) {
             int v = stack.pop();
@@ -119,12 +119,8 @@ public class EulerianCycle {
         }
         
         // check if all edges are used
-        for (int v = 0; v < G.V(); v++) {
-            if (!adj[v].isEmpty()) {
-                cycle = null;
-                break;
-            }
-        }
+        if (cycle.size() != G.E() + 1)
+            cycle = null;
     }
     
     
@@ -149,15 +145,8 @@ public class EulerianCycle {
     }
     
     
-    private static int nonIsolatedVertex(Graph G) {
-        for (int v = 0; v < G.V(); v++) 
-            if (G.degree(v) > 0) return v;
-        return -1;
-    }
-    
-    
     /**
-     * Returns the sequence of vertices in the Eulerian path/cycle in a 
+     * Returns the sequence of vertices in the Eulerian cycle in a 
      * String format
      * 
      * @return an Eulerian cycle in String
@@ -168,14 +157,14 @@ public class EulerianCycle {
     }
     
     /**
-     * Prints out the Eulerian path/cycle if it exists
+     * Prints out the Eulerian cycle if it exists
      */
     public static void main(String[] args) {
         In in1 = new In(args[0]);
         Graph G1 = new Graph(in1);
         EulerianCycle ep1 = new EulerianCycle(G1);
         if (ep1.hasEulerianCycle()) System.out.println("Eulerian Cycle detected:");
-        else System.out.println("No Eulerian Path or Cycle detected");
+        else System.out.println("No Eulerian Cycle detected");
         System.out.println(ep1.toString());
     }
 }
