@@ -3,7 +3,7 @@ import edu.princeton.cs.algs4.Graph;
 
 import junit.framework.TestCase;
 
-public class EulerianPathAndCycleTest extends TestCase {
+public class EulerianPathTest extends TestCase {
     
     
     // To test Eulerian path and cycle, we need to check:
@@ -16,36 +16,27 @@ public class EulerianPathAndCycleTest extends TestCase {
     public void testPath() {
         
         // eulerian path test cases
-        assertTrue(checkPath("smallPathG.txt", true, false));
+        assertTrue(checkPath("smallPathG.txt", true));
         for (int i = 1; i <= 6; i++) {
             String f = "path"+i+".txt";
-            assertTrue(checkPath(f, true, false));
-        }
-        
-        // eulerian cycle test cases
-        assertTrue(checkPath("smallCycleG.txt", true, true));
-        for (int i = 0; i <= 6; i++) {
-            String f = "cycle"+i+".txt";
-            assertTrue(checkPath(f, true, true));
+            assertTrue(checkPath(f, true));
         }
         
         // non eulerian path test case
-        assertTrue(checkPath("pathExtraEdge.txt", false, false));
+        assertTrue(checkPath("pathExtraEdge.txt", false));
     }
     
     // makes graph from file and returns Eulerian path
-    private boolean checkPath(String filename, boolean hasPath, 
-                              boolean hasCycle) {
+    private boolean checkPath(String filename, boolean hasPath) {
         In in = new In(filename);
         Graph G = new Graph(in);
         in.close();
         
-        EulerianPathAndCycle ep = new EulerianPathAndCycle(G);
-        if (hasPath != ep.isEulerianPath() 
-                || hasCycle != ep.isEulerianCycle())
+        EulerianPath ep = new EulerianPath(G);
+        if (hasPath != ep.hasEulerianPath())
             return false;
         // return if this is a failing case
-        if (!hasPath && !hasCycle) return true;
+        if (!hasPath) return true;
         
         // make adj matrix of G
         int[][] matrix = new int[G.V()][G.V()];
