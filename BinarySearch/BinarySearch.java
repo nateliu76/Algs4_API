@@ -1,6 +1,3 @@
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdIn;
-
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -148,30 +145,5 @@ public class BinarySearch {
         int lo = pred(key1, a);
         int hi = pred(key2, a);
         return hi - lo;
-    }
-    
-    /**
-     * Reads in a sequence of integers from the whitelist file, specified as
-     * a command-line argument. Reads in integers from standard input and
-     * prints to standard output those integers that do *not* appear in the file.
-     */
-    public static void main(String[] args) {
-        // read the integers from a file
-        In in = new In(args[0]);
-        int[] arr = in.readAllInts();
-        Arrays.sort(arr);
-        // read integer key from standard input
-        while (!StdIn.isEmpty()) {
-            int key = StdIn.readInt();
-            System.out.println(indexOf(key, arr));
-            System.out.println("first: "+firstIndexOf(key, arr));
-            System.out.println("last: "+lastIndexOf(key, arr));
-            System.out.println("floor: "+floor(key, arr));
-            System.out.println("ceil: "+ceil(key, arr));
-            System.out.println("pred: "+pred(key, arr));
-            System.out.println("succ: "+succ(key, arr));
-            System.out.println("count: "+count(key, arr));
-            System.out.println("rank: "+rank(key, arr));
-        }
     }
 }
