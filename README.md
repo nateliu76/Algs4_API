@@ -1,29 +1,25 @@
 # Algs4_API
 
-The goal is to help expand the library of API's included in the page: http://algs4.cs.princeton.edu/code/ 
+This project is in collaboration with the authors of the textbook [Algorithms 4th Edition](http://www.amazon.com/Algorithms-4th-Edition-Robert-Sedgewick/dp/032157351X) to expand their library of algorithm API's
 
-Ones already published:
+[Their official site](http://algs4.cs.princeton.edu/home/)
 
-* Dijkstra's SP in undirected graph:
+[The page for the API's](http://algs4.cs.princeton.edu/code/)
 
-  * http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/DijkstraUndirectedSP.java.html
-
-* Eulerian path / cycle in undirected graphs:
-
-  * http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/EulerianCycle.java.html
-
-  * http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/EulerianPath.java.html
+The material is also used with the Algorithms courses at Princeton University, and the popular MOOC [Algorithms I](https://www.coursera.org/course/algs4partI), and [Algorithms II](https://www.coursera.org/course/algs4partII)
 
 
 
-* Eulerian path / cycle in directed graphs
+API's that are already published on the site:
 
-  * http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/DirectedEulerianCycle.java.html
+* [Dijkstra's SP in undirected graph](http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/DijkstraUndirectedSP.java.html)
 
-  * http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/DirectedEulerianPath.java.html
+* [Eulerian path in undirected graphs](http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/EulerianPath.java.html)
+* [Eulerian cycle in undirected graphs](http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/EulerianCycle.java.html)
+* [Eulerian path in directed graphs](http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/DirectedEulerianCycle.java.html)
+* [Eulerian cycle in directed graphs](http://algs4.cs.princeton.edu/code/edu/princeton/cs/algs4/DirectedEulerianPath.java.html)
 
-
-Under review:
+API's that are finished but under review:
 
 * Binary search with extra functions (first/last index of, floor/ceiling, predecessor/successor, count, etc.)
 
