@@ -39,6 +39,25 @@ public class GraphProperties {
     
     public static boolean isSimplePath(Graph G) {
         // find starting point and do DFS
+        int start = -1;
+        int end = -1;
+        for (int v = 0; v < G.V(); v++) {
+            if (G.degree(v) == 1) {
+                if (start == -1) start = v;
+                else if (end == -1) end = v;
+                else return false;
+            }
+            else if (G.degree(v) == 0 || G.degree(v) == 2) continue;
+            else return false;
+        }
+        if (start == -1 || end == -1) return false;
+        
+        // do DFS and check if the last one is end
+        Stack<Integer> stack = new Stack<Integer>();
+        stack.push(start);
+        while (!stack.isEmpty()) {
+            
+        }
         return true;
     }
     
@@ -47,8 +66,12 @@ public class GraphProperties {
         HashSet<Integer> visited = new HashSet<Integer>();
         int v = s;
         while (v != t) {
-            if (G.degree(v)
+            if (G.degree(v));
         }
         return true;
     }
+    
+    public static boolean isPathOfGraph(Graph G, Iterable<Integer> path) {}
+    
+    public static boolean isCycle() {}
 }
