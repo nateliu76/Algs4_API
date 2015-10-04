@@ -1,15 +1,18 @@
 import java.util.HashMap;
-import java.util.HashSet;
 
 import edu.princeton.cs.algs4.Graph;
+import edu.princeton.cs.algs4.NonrecursiveDFS;
+import edu.princeton.cs.algs4.Queue;
 
 public class GraphProperties {
     // this class should not be instantiated
     private GraphProperties() { }
     
-    public static boolean isSubGraph(Graph subG, Graph G) {
+    // check if subG is a subgraph of G
+    public static boolean isSubgraph(Graph subG, Graph G) {
         if (subG.V() > G.V() || subG.E() > G.E()) return false;
         
+        // adj list stored as an array of hash maps
         HashMap<Integer, Integer>[] edgeCount = new HashMap[G.V()];
         // add all edges to array
         for (int v = 0; v < G.V(); v++) {
@@ -37,6 +40,7 @@ public class GraphProperties {
         return true;
     }
     
+    // check if G is a simple path
     public static boolean isSimplePath(Graph G) {
         // find starting point and do DFS
         int start = -1;
@@ -52,26 +56,60 @@ public class GraphProperties {
         }
         if (start == -1 || end == -1) return false;
         
-        // do DFS and check if the last one is end
-        Stack<Integer> stack = new Stack<Integer>();
-        stack.push(start);
-        while (!stack.isEmpty()) {
+        // do DFS and check if all vertices are connected to start vertex
+        NonrecursiveDFS dfs = new NonrecursiveDFS(G, start);
+        for (int v = 0; v < G.V(); v++) {
+            if (!dfs.marked(v) && G.degree(v) != 0) return false;
+        }
+        return true;
+    }
+    
+    // check if path represented by an Iterable is a subgraph of G
+    public static boolean isPathSubgraph(Graph G, Iterable<Integer> path) {
+        Queue<Integer> q = new Queue<Integer>();
+        int maxV = 0;
+        // find max vertex value to construct graph
+        for (int v : path) {
+            maxV = Math.max(maxV, v);
+            q.enqueue(v);
+        }
             
+        // construct graph using iterable
+        Graph P = new Graph(maxV);
+        int prevV = -1;
+        for (int v : q) {
+            if (prevV != -1) P.addEdge(prevV, v);
+            prevV = v;
         }
-        return true;
+        
+        // run is subgraph
+        return isSubgraph(P, G);
     }
     
-    public static boolean isSimplePath(Graph G, int s, int t) {
-        // start from s and do DFS until t is reached
-        HashSet<Integer> visited = new HashSet<Integer>();
-        int v = s;
-        while (v != t) {
-            if (G.degree(v));
+    // check if path represented by an Iterable is a subgraph of G
+    public static boolean isCycleSubgraph(Graph G, Iterable<Integer> cycle) {
+        Queue<Integer> q = new Queue<Integer>();
+        int maxV = 0;
+        int start = -1;
+        // find max vertex value to construct graph
+        for (int v : cycle) {
+            if (start == -1) start = v;
+            maxV = Math.max(maxV, v);
+            q.enqueue(v);
         }
-        return true;
+        
+        // check if last vertex is same as first vertex
+        if (start != q.peek()) return false;
+        
+        // construct graph using iterable
+        Graph P = new Graph(maxV);
+        int prevV = -1;
+        for (int v : q) {
+            if (prevV != -1) P.addEdge(prevV, v);
+            prevV = v;
+        }
+        
+        // run is subgraph
+        return isSubgraph(P, G);
     }
-    
-    public static boolean isPathOfGraph(Graph G, Iterable<Integer> path) {}
-    
-    public static boolean isCycle() {}
 }
